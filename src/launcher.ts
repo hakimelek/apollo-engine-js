@@ -3,6 +3,9 @@ import { ChildProcess, spawn } from 'child_process';
 
 import { EngineConfig, LauncherOptions, ListeningAddress } from './types';
 
+// An arbitrary function; suitable as an EventEmitter event handler.
+type eventHandler = (...args: any[]) => any;
+
 // ApolloEngineLauncher knows how to run an engineproxy binary, wait for it to
 // be listening, learn on what address it is listening, and restart it when it
 // crashes. It doesn't know how to automatically connect it to a GraphQL server
@@ -13,6 +16,7 @@ export class ApolloEngineLauncher extends EventEmitter {
   private config: EngineConfig;
   private binary: string;
   private child: ChildProcess | null;
+  private eventStopper?: () => void;
 
   // The constructor takes the same argument as ApolloEngine: the underlying
   // engineproxy config file.
@@ -167,6 +171,17 @@ export class ApolloEngineLauncher extends EventEmitter {
 
     spawnChild();
 
+    this.setUpStopEvents(
+      options.processCleanupEvents || [
+        'exit',
+        'uncaughtException',
+        'SIGINT',
+        'SIGTERM',
+        // We mostly care about SIGUSR2 because nodemon uses it.
+        'SIGUSR2',
+      ],
+    );
+
     return new Promise((resolve, reject) => {
       let startupErrorHandler: (error: Error) => void;
       let cancelTimeout: NodeJS.Timer;
@@ -204,6 +219,9 @@ export class ApolloEngineLauncher extends EventEmitter {
     if (this.child === null) {
       throw new Error('No engine instance running!');
     }
+    if (this.eventStopper) {
+      this.eventStopper();
+    }
     const childRef = this.child;
     this.child = null;
     return new Promise(resolve => {
@@ -219,6 +237,60 @@ export class ApolloEngineLauncher extends EventEmitter {
       // No listeners; default to console.error.
       console.error(error);
     }
+  }
+
+  private setUpStopEvent(event: string): eventHandler {
+    const handler = (maybeError?: Error) => {
+      let childPromise = Promise.resolve();
+      // Kill the child if it's running.
+      if (this.child) {
+        // Note that in the case of the 'exit' event we're not going to
+        // actually get a chance to wait for anything to happen, but at least
+        // we'll fire off the signal.
+        childPromise = this.stop();
+      }
+
+      // For uncaughtException, rethrow the error. This does slightly change the
+      // printed error (but not its stack trace) and converts the exit status of
+      // 1 into 7, but it's pretty close. We do this synchronously rather than
+      // allow the program to keep running after uncaught exception. Note that
+      // we don't allow this function to be an async function, so that this
+      // throw is truly synchronous.
+      if (event === 'uncaughtException') {
+        throw maybeError;
+      }
+
+      if (event.startsWith('SIG')) {
+        // Wait for the child to finish. In a signal handler we can afford to
+        // be asynchronous, unlike with 'exit' or 'uncaughtException'.
+        childPromise.then(() => {
+          // Re-signal self. Since this was a 'once', the signal won't hit this
+          // handler again. Re-signaling ourself means that our exit status will
+          // be as if we were killed by the signal we received, which is
+          // something that things like nodemon like to see.
+          process.kill(process.pid, event);
+        });
+      }
+    };
+    (process as EventEmitter).once(event, handler);
+    return handler;
+  }
+
+  private setUpStopEvents(events: string[]) {
+    const handlers = new Map<string, eventHandler>();
+    events.forEach(event => {
+      // Process any given event at most once.
+      if (handlers.has(event)) {
+        return;
+      }
+      handlers.set(event, this.setUpStopEvent(event));
+    });
+    this.eventStopper = () => {
+      handlers.forEach((handler, event) => {
+        process.removeListener(event, handler);
+      });
+      delete this.eventStopper;
+    };
   }
 }
 

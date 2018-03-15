@@ -26,7 +26,11 @@ import {
   verifyEndpointBatch,
 } from './schema';
 import { processIsRunning, devNull } from './util';
-import { runSuite, runSuitesForHttpServerFramework } from './engine-common';
+import {
+  runSuite,
+  runSuitesForHttpServerFramework,
+  runCleanupTests,
+} from './engine-common';
 
 import { ApolloEngine } from '../engine';
 
@@ -317,3 +321,5 @@ describe('launch failure', () => {
     expect(end - start).toBeLessThan(5000);
   });
 });
+
+runCleanupTests(false);

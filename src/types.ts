@@ -7,6 +7,7 @@ export interface LauncherOptions {
   proxyStdoutStream?: NodeJS.WritableStream;
   proxyStderrStream?: NodeJS.WritableStream;
   extraArgs?: string[];
+  processCleanupEvents?: string[];
 }
 
 export interface ListeningAddress {

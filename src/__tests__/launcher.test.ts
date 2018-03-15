@@ -8,6 +8,7 @@ import { Writable } from 'stream';
 
 import { schema, rootValue, verifyEndpointSuccess } from './schema';
 import { processIsRunning, devNull } from './util';
+import { runCleanupTests } from './engine-common';
 
 import { ApolloEngineLauncher } from '../launcher';
 
@@ -218,5 +219,7 @@ describe('ApolloEngineLauncher', () => {
       expect(end - start).toBeGreaterThanOrEqual(300);
       expect(restarted).toBeGreaterThan(0);
     });
+
+    runCleanupTests(true);
   });
 });

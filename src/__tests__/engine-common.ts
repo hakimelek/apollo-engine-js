@@ -1,5 +1,7 @@
 import * as http from 'http';
 import * as request from 'request';
+import { join as pathJoin } from 'path';
+import { fork } from 'child_process';
 import { stub, SinonStub } from 'sinon';
 
 import {
@@ -158,5 +160,65 @@ export function runSuitesForHttpServerFramework(
         frameworkName,
       );
     });
+  });
+}
+
+export function runCleanupTests(forLauncher: boolean) {
+  describe('engineproxy cleaned up', () => {
+    ['SIGINT', 'SIGTERM', 'SIGUSR2', 'uncaughtException', 'exit'].forEach(
+      event => {
+        test(`on ${event}`, async () => {
+          // There is no SIGUSR2 on Windows.
+          if (event === 'SIGUSR2' && process.platform === 'win32') {
+            return;
+          }
+
+          const env: NodeJS.ProcessEnv = {
+            ...process.env,
+          };
+          if (forLauncher) {
+            env.AEJ_TEST_LAUNCHER = 't';
+          }
+          if (event === 'uncaughtException') {
+            env.AEJ_TEST_UNCAUGHT_EXCEPTION = 't';
+          }
+          if (event === 'exit') {
+            env.AEJ_TEST_PROCESS_EXIT = 't';
+          }
+          const child = fork(pathJoin(__dirname, 'child.js'), [], {
+            env,
+            // You may want to remove the following line to debug failures in
+            // these tests.
+            silent: true,
+          });
+          const proxyPid = await new Promise<number>(resolve => {
+            child.on('message', m => {
+              resolve(m.pid);
+            });
+          });
+
+          // Verify that the proxy exists.
+          process.kill(proxyPid, 0);
+
+          const childDone = new Promise(resolve => {
+            child.on('exit', resolve);
+          });
+
+          if (event.startsWith('SIG')) {
+            child.kill(event);
+          }
+          await childDone;
+
+          // 'exit' and 'uncaughtException' don't actually wait for the proxy to
+          // be gone, so sleep a bit to avoid races in tests.
+          if (event === 'exit' || event === 'uncaughtException') {
+            await new Promise(resolve => setTimeout(resolve, 10));
+          }
+
+          // Verify that the proxy is gone.
+          expect(() => process.kill(proxyPid, 0)).toThrow();
+        });
+      },
+    );
   });
 }
