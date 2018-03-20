@@ -203,6 +203,7 @@ export class ApolloEngine extends EventEmitter {
     innerAddress: { port: number; address: string },
     options: CoreListenOptions,
   ) {
+    console.log(`starting engine, would talk to ${innerAddress.address}`);
     let port: number;
     if (typeof options.port === 'string') {
       port = parseInt(options.port, 10);
@@ -217,7 +218,7 @@ export class ApolloEngine extends EventEmitter {
       frontendPort: +options.port,
       graphqlPaths: options.graphqlPaths || ['/graphql'],
       originUrl: `http://${joinHostPort(
-        innerAddress.address,
+        '127.0.0.1',
         innerAddress.port,
       )}`,
       // Support multiple graphqlPaths.
