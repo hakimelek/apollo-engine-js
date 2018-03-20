@@ -1,6 +1,6 @@
 {
   "name": "apollo-engine",
-  "version": "1.0.4-evans.2",
+  "version": "1.0.4-evans.3",
   "description": "Sideload Apollo Engine in front of your graphql server",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
