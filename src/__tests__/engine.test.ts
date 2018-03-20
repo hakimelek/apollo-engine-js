@@ -65,7 +65,7 @@ function connectQuery(
   next: Function,
 ) {
   const parsedUrl = urlModule.parse(req.url!);
-  (req as any).query = qs.parse(parsedUrl.query);
+  (req as any).query = qs.parse(parsedUrl.query!);
   next();
 }
 
