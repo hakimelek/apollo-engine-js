@@ -24,6 +24,7 @@ export class ApolloEngineLauncher extends EventEmitter {
     super();
 
     this.config = config;
+    this.child = null;
     switch (process.platform) {
       case 'darwin':
         this.binary = require.resolve(

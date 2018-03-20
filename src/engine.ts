@@ -35,11 +35,11 @@ export interface HapiListenOptions extends CoreListenOptions {}
 // Node web framework of choice.
 export class ApolloEngine extends EventEmitter {
   // Primarily useful if you're having engine listen on 0 for tests.
-  public engineListeningAddress: ListeningAddress;
+  public engineListeningAddress?: ListeningAddress;
 
   private config: EngineConfig;
   private launcher: ApolloEngineLauncher;
-  private httpServer: HttpServer;
+  private httpServer: HttpServer | null;
 
   // The constructor takes the underlying engineproxy config file. All options
   // specific to the Node API are passed to `listen` (or other entry point) to
@@ -48,6 +48,7 @@ export class ApolloEngine extends EventEmitter {
     super();
     this.config = config;
     this.launcher = new ApolloEngineLauncher(config);
+    this.httpServer = null;
   }
 
   // listen tells your app to listen on an ephemeral port, then starts an
@@ -120,7 +121,8 @@ export class ApolloEngine extends EventEmitter {
   public async stop() {
     await this.launcher.stop();
     // XXX Should we also wait for all current connections to be closed?
-    this.httpServer.close();
+    this.httpServer!.close();
+    this.httpServer = null;
   }
 
   // Call this from the top level of a Meteor server as
