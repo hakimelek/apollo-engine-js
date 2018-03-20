@@ -162,7 +162,7 @@ export function runSuitesForHttpServerFramework(
                 },
               },
               () => {
-                resolve(`${engine!.engineListeningAddress.url}/graphql`);
+                resolve(`${engine!.engineListeningAddress!.url}/graphql`);
               },
             );
           });

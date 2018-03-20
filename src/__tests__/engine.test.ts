@@ -232,7 +232,7 @@ describe('hapi integration', () => {
         });
         await gqlServer({ autoListen: false, listener: hapiListener });
         await server.start();
-        return `${engine.engineListeningAddress.url}/graphql`;
+        return `${engine.engineListeningAddress!.url}/graphql`;
       },
       false,
       'hapi',
