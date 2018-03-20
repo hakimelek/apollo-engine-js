@@ -36,6 +36,7 @@
     "@types/restify": "^5.0.7"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.16.8",
     "@types/graphql": "^0.9.2",
     "@types/hapi": "^17.0.4",
     "@types/jest": "^22.1.4",
