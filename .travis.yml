@@ -1,6 +1,12 @@
 language: node_js
+
+# For now we definitely support 4/6/8 (LTS), but we'd love to learn about how we
+# fare with newer versions too.
 node_js:
+  - "4"
+  - "6"
   - "8"
+  - "9"
 
 cache:
   directories:
