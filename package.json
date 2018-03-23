@@ -1,6 +1,6 @@
 {
   "name": "apollo-engine",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Sideload Apollo Engine in front of your graphql server",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -23,9 +23,9 @@
     "npm": ">=4.0"
   },
   "optionalDependencies": {
-    "apollo-engine-binary-darwin": "0.2018.2-156-g4bb06d64b",
-    "apollo-engine-binary-linux": "0.2018.2-156-g4bb06d64b",
-    "apollo-engine-binary-windows": "0.2018.2-156-g4bb06d64b"
+    "apollo-engine-binary-darwin": "0.2018.2-197-g8bb3880fd",
+    "apollo-engine-binary-linux": "0.2018.2-197-g8bb3880fd",
+    "apollo-engine-binary-windows": "0.2018.2-197-g8bb3880fd"
   },
   "dependencies": {
     "@types/connect": "^3.4.31",
