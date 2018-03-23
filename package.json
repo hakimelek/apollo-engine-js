@@ -10,8 +10,8 @@
     "watch": "tsc -w",
     "prepare": "npm run clean && npm run compile",
     "test": "jest --verbose",
-    "pretravis": "npm run compile",
-    "travis": "jest --verbose --coverage",
+    "precircle": "npm run compile",
+    "circle": "jest --verbose --coverage",
     "lint": "prettier -l '{src,test}/**/*.{ts,js}' && tslint -p tsconfig.json '{src,test}/**/*.ts'",
     "lint-fix": "prettier --write '{src,test}/**/*.{ts,js}' && tslint --fix -p tsconfig.json '{src,test}/**/*.ts'"
   },
