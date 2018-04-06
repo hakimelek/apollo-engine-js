@@ -99,6 +99,13 @@ export class ApolloEngineLauncher extends EventEmitter {
         options.extraArgs.forEach(a => args.push(a));
       }
 
+      // Add extra environment variables. Used by tests.
+      if (options.extraEnv) {
+        Object.keys(options.extraEnv).forEach(k => {
+          env[k] = options.extraEnv![k];
+        });
+      }
+
       const child = spawn(this.binary, args, { stdio, env });
       this.child = child;
 

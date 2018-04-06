@@ -99,21 +99,24 @@ export class ApolloEngine extends EventEmitter {
     // the user wants to listen for that error they can spend one line turning
     // their app into an http.Server and pass that in instead.
     // (And with restify, they have access to restifyServer.server themselves.)
-    this.httpServer.listen({ port: 0, host: options.innerHost }, () => {
-      // The Node server is now listening, so we can figure out what its address
-      // is!
-      //
-      // We run listenCallback and this.emit('error') outside of this Promise's
-      // then/catch, because we want to avoid making `listen` a Promisey API
-      // (because we want it to work like httpServer.listen), and doing stuff
-      // that can throw in a then/catch means that we would need somebody to be
-      // catch-ing the Promise itself.
-      this.startEngine(httpServer.address(), options)
-        .then(() => listenCallback && process.nextTick(listenCallback))
-        .catch(error => {
-          process.nextTick(() => this.emit('error', error));
-        });
-    });
+    this.httpServer.listen(
+      { port: 0, host: options.innerHost || '127.0.0.1' },
+      () => {
+        // The Node server is now listening, so we can figure out what its address
+        // is!
+        //
+        // We run listenCallback and this.emit('error') outside of this Promise's
+        // then/catch, because we want to avoid making `listen` a Promisey API
+        // (because we want it to work like httpServer.listen), and doing stuff
+        // that can throw in a then/catch means that we would need somebody to be
+        // catch-ing the Promise itself.
+        this.startEngine(httpServer.address(), options)
+          .then(() => listenCallback && process.nextTick(listenCallback))
+          .catch(error => {
+            process.nextTick(() => this.emit('error', error));
+          });
+      },
+    );
   }
 
   // Stops Engine and your app.

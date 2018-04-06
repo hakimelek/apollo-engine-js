@@ -148,6 +148,18 @@ export function runSuitesForHttpServerFramework(
                 // listening callback.
                 port: 0,
                 [appParameter]: app,
+                launcherOptions: {
+                  extraEnv: {
+                    // engineproxy should only try to connect to our origin
+                    // (reporting is diabled), which is on localhost, so this
+                    // bad proxy should be ignored. This is a regression test
+                    // from back when we would put unspecified IPs in the origin
+                    // URL by default (instead of listening on 127.0.0.1 by
+                    // default) and the Go http library would try to use the
+                    // proxy (https://github.com/golang/go/issues/24737).
+                    HTTP_PROXY: 'http://bad.proxy.example.com/',
+                  },
+                },
               },
               () => {
                 resolve(`${engine!.engineListeningAddress.url}/graphql`);

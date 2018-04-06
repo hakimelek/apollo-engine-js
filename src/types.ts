@@ -8,6 +8,9 @@ export interface LauncherOptions {
   proxyStderrStream?: NodeJS.WritableStream;
   extraArgs?: string[];
   processCleanupEvents?: string[];
+
+  // Only for tests.
+  extraEnv?: Record<string, string>;
 }
 
 export interface ListeningAddress {
