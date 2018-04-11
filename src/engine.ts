@@ -44,7 +44,7 @@ export class ApolloEngine extends EventEmitter {
   // The constructor takes the underlying engineproxy config file. All options
   // specific to the Node API are passed to `listen` (or other entry point) to
   // maintain a strict separate between Node options and engineproxy config.
-  public constructor(config: EngineConfig) {
+  public constructor(config: EngineConfig = {}) {
     super();
     this.config = config;
     this.launcher = new ApolloEngineLauncher(config);

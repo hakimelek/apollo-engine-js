@@ -263,6 +263,60 @@ test('can pass a string as a port', async () => {
   }
 });
 
+test('must specify apiKey', async () => {
+  const httpServer = http.createServer();
+  const engine = new ApolloEngine();
+  const p = new Promise((resolve, reject) => {
+    engine.on('error', e => resolve(e));
+    engine.listen(
+      {
+        port: '0',
+        httpServer,
+        launcherOptions: { proxyStderrStream: devNull() },
+      },
+      () => reject(new Error('should not start')),
+    );
+  });
+  await p;
+  httpServer.close();
+});
+
+describe('env var', () => {
+  let oldValue: string | undefined;
+  beforeEach(() => {
+    oldValue = process.env.ENGINE_API_KEY;
+  });
+  afterEach(() => {
+    if (oldValue === undefined) {
+      delete process.env.ENGINE_API_KEY;
+    } else {
+      process.env.ENGINE_API_KEY = oldValue;
+    }
+  });
+
+  test('can specify apiKey as env var', async () => {
+    const httpServer = http.createServer();
+    const engine = new ApolloEngine();
+    process.env.ENGINE_API_KEY = 'faked';
+    try {
+      const p = new Promise(resolve =>
+        engine.listen(
+          {
+            port: '0',
+            httpServer,
+            launcherOptions: { proxyStderrStream: devNull() },
+          },
+          resolve,
+        ),
+      );
+      await p;
+    } finally {
+      await engine.stop();
+      httpServer.close();
+    }
+  });
+});
+
 describe('launch failure', () => {
   let engine: ApolloEngine | null = null;
   let httpServer: http.Server | null = null;

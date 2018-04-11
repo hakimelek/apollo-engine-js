@@ -19,7 +19,8 @@ export class ApolloEngineLauncher extends EventEmitter {
   private eventStopper?: () => void;
 
   // The constructor takes the same argument as ApolloEngine: the underlying
-  // engineproxy config file.
+  // engineproxy config file.  Note that unlike the ApolloEngine constructor,
+  // the config is mandatory, because you need to at least define an origin URL.
   public constructor(config: EngineConfig) {
     super();
 
