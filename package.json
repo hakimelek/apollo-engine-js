@@ -78,6 +78,7 @@
     "singleQuote": true
   },
   "jest": {
+    "testEnvironment": "node",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
