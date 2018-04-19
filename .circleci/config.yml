@@ -38,7 +38,7 @@ common_test_steps: &common_test_steps
 
     - restore_cache:
         keys:
-          - v1-dependencies-{{ checksum ".cache_key" }}
+          - v1-dependencies-{{ checksum ".cache_key-NAME_THAT_DOESNT_EXIST" }}
 
     - run: node --version
 
@@ -49,7 +49,7 @@ common_test_steps: &common_test_steps
     - save_cache:
         paths:
           - node_modules
-        key: v1-dependencies-{{ checksum ".cache_key" }}
+        key: v1-dependencies-{{ checksum ".cache_key-NAME_THAT_DOESNT_EXIST" }}
 
     # test with coverage.
     - run: npm run circle
