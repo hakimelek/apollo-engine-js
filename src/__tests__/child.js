@@ -1,9 +1,9 @@
 // This script is run via child_process.fork by tests in order to test engine's
-// process shutdown behavior.
+// process shutdown behavior. This file must be kept Node 4-compatible.
 
 // Note that you may need to manually run "npm install"/"tsc" before running
 // tests to pick up changes to the non-test Engine code.
-const { ApolloEngine, ApolloEngineLauncher } = require('../../lib');
+const lib = require('../../lib');
 const http = require('http');
 
 const config = {
@@ -30,7 +30,17 @@ function maybeDie() {
 }
 
 if (process.env.AEJ_TEST_LAUNCHER) {
-  const launcher = new ApolloEngineLauncher(config);
+  const launcher = new lib.ApolloEngineLauncher(config);
+
+  // Make sure thrown errors throw rather than end up in Promises.  (This is
+  // isn't just inlined into the catch call later because otherwise prettier's
+  // formatting will add a trailing comma after the function definition, which
+  // breaks running tests on Node 6 and older.)
+  function throwSoon(err) {
+    process.nextTick(() => {
+      throw err;
+    });
+  }
 
   launcher
     .start()
@@ -38,14 +48,9 @@ if (process.env.AEJ_TEST_LAUNCHER) {
       process.send({ pid: launcher.child.pid });
       setTimeout(maybeDie, 2);
     })
-    .catch(err =>
-      // Make sure thrown errors throw rather than end up in Promises.
-      process.nextTick(() => {
-        throw err;
-      }),
-    );
+    .catch(throwSoon);
 } else {
-  const engine = new ApolloEngine(config);
+  const engine = new lib.ApolloEngine(config);
 
   engine.listen({ port: 0, httpServer: http.createServer() }, () => {
     process.send({ pid: engine.launcher.child.pid });
