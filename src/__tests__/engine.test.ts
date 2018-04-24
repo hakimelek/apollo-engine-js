@@ -24,6 +24,7 @@ import {
 } from './engine-common';
 
 import { ApolloEngine } from '../engine';
+import * as os from 'os';
 
 runSuitesForHttpServerFramework('express', {
   createApp() {
@@ -219,6 +220,67 @@ describe('launch failure', () => {
     const end = +new Date();
     expect(end - start).toBeLessThan(5000);
   });
+  if (os.type() === 'Windows_NT') {
+    // Named pipes should actually work
+    test('using pipePath on Windows should actually work', async () => {
+      httpServer = http.createServer();
+      httpServer = httpServer!;
+      engine = new ApolloEngine({
+        apiKey: 'faked',
+        logging: {
+          level: 'DEBUG',
+          destination: 'STDERR',
+        },
+        reporting: {
+          disabled: true,
+        },
+      });
+      try {
+        const p = new Promise(resolve => {
+          httpServer = httpServer!;
+          engine!.listen({ pipePath: '\\\\.\\pipe\\foo', httpServer }, resolve);
+        });
+        await p;
+      } finally {
+        await engine.stop();
+        httpServer.close();
+      }
+    });
+  } else {
+    test('using pipePath on non-Windows results in a configuration error', async () => {
+      engine = new ApolloEngine({
+        apiKey: 'faked',
+        reporting: {
+          disabled: true,
+        },
+      });
+
+      const start = +new Date();
+      httpServer = http.createServer();
+      const p = new Promise((resolve, reject) => {
+        // Help TS understand that these variables are still set.
+        httpServer = httpServer!;
+        engine = engine!;
+        // We expect to get an error, so that's why we're *resolving* with it.
+        engine!.once('error', err => {
+          resolve(err.message);
+        });
+        engine!.listen(
+          {
+            httpServer,
+            pipePath: 'anything',
+            launcherOptions: { proxyStderrStream: devNull() },
+          },
+          () => reject(new Error('Engine should not listen successfully')),
+        );
+      });
+      await expect(p).resolves.toMatch(
+        /Engine crashed due to invalid configuration/,
+      );
+      const end = +new Date();
+      expect(end - start).toBeLessThan(5000);
+    });
+  }
 });
 
 runCleanupTests(false);

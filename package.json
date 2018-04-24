@@ -23,9 +23,9 @@
     "npm": ">=4.0"
   },
   "optionalDependencies": {
-    "apollo-engine-binary-darwin": "0.2018.4-20-g7a8822c14",
-    "apollo-engine-binary-linux": "0.2018.4-20-g7a8822c14",
-    "apollo-engine-binary-windows": "0.2018.4-20-g7a8822c14"
+    "apollo-engine-binary-darwin": "0.2018.4-36-gff9b21d56",
+    "apollo-engine-binary-linux": "0.2018.4-36-gff9b21d56",
+    "apollo-engine-binary-windows": "0.2018.4-36-gff9b21d56"
   },
   "dependencies": {
     "@types/connect": "^3.4.31",

@@ -13,8 +13,18 @@ export interface LauncherOptions {
   extraEnv?: Record<string, string>;
 }
 
-export interface ListeningAddress {
+export interface TcpListeningAddress {
   ip: string;
   port: number;
   url: string;
+  pipeName: undefined;
 }
+
+export interface PipeListeningAddress {
+  pipeName: string;
+  url: undefined;
+  port: undefined;
+  ip: undefined;
+}
+
+export type ListeningAddress = TcpListeningAddress | PipeListeningAddress;

@@ -17,8 +17,9 @@ export interface MeteorListenOptions {
 }
 
 export interface CoreListenOptions extends MeteorListenOptions {
-  port: number | string;
+  port?: number | string;
   host?: string; // default: ''. This is where engineproxy listens.
+  pipePath?: string;
 }
 
 export interface ListenOptions extends CoreListenOptions {
@@ -29,13 +30,17 @@ export interface ListenOptions extends CoreListenOptions {
   restifyServer?: RestifyServer;
 }
 
+export interface EngineNetListenOptions extends NetListenOptions {
+  pipePath?: string;
+}
+
 export interface HapiListenOptions extends CoreListenOptions {}
 
 // ApolloEngine is the main API used to run engineproxy. It integrates with your
 // Node web framework of choice.
 export class ApolloEngine extends EventEmitter {
   // Primarily useful if you're having engine listen on 0 for tests.
-  public engineListeningAddress?: ListeningAddress;
+  public engineListeningAddress: ListeningAddress;
 
   private config: EngineConfig;
   private launcher: ApolloEngineLauncher;
@@ -55,9 +60,9 @@ export class ApolloEngine extends EventEmitter {
   // engineproxy listening on the specified port configured with your app's
   // ephemeral port as an origin.
   public listen(options: ListenOptions, listenCallback?: () => void) {
-    if (options.port === undefined) {
+    if (options.port === undefined && options.pipePath === undefined) {
       throw new Error(
-        'Must provide the port that your app will be accessible on as "port"',
+        'Must provide either the `pipePath` or the `port` that your app will be accessible on.',
       );
     }
     let httpServer: HttpServer;
@@ -132,20 +137,30 @@ export class ApolloEngine extends EventEmitter {
   // `engine.meteorListen(WebApp)` to hook in to the built-in connect server.
   public meteorListen(webApp: any, options: MeteorListenOptions = {}) {
     const makeListenPolyfill = (httpServer: HttpServer) => (
-      listenOptions: NetListenOptions,
+      listenOptions: EngineNetListenOptions,
       cb: () => void,
     ) => {
+      let engineListenOptions;
       if (listenOptions.path !== undefined) {
         throw Error('Engine does not support listening on a path');
       }
       if (listenOptions.port === undefined) {
-        throw Error('Engine done not support listening without a port');
+        if (!listenOptions.pipePath) {
+          throw Error('Engine needs a port or a pipe name to listen on');
+        }
+        engineListenOptions = {
+          pipePath: listenOptions.pipePath,
+        };
+      } else {
+        engineListenOptions = {
+          port: listenOptions.port,
+          host: listenOptions.host,
+        };
       }
       this.listen(
         {
           ...options,
-          port: listenOptions.port,
-          host: listenOptions.host,
+          ...engineListenOptions,
           httpServer,
         },
         cb,
@@ -157,7 +172,7 @@ export class ApolloEngine extends EventEmitter {
     if (webApp.startListening) {
       webApp.startListening = (
         httpServer: HttpServer,
-        listenOptions: NetListenOptions,
+        listenOptions: EngineNetListenOptions,
         cb: () => void,
       ) => {
         makeListenPolyfill(httpServer)(listenOptions, cb);
@@ -169,7 +184,7 @@ export class ApolloEngine extends EventEmitter {
     const originalListen = webApp.httpServer.listen;
     const listenPolyfill = makeListenPolyfill(webApp.httpServer);
     webApp.httpServer.listen = (
-      listenOptions: NetListenOptions,
+      listenOptions: EngineNetListenOptions,
       cb: () => void,
     ) => {
       webApp.httpServer.listen = originalListen;
@@ -206,18 +221,21 @@ export class ApolloEngine extends EventEmitter {
     innerAddress: { port: number; address: string },
     options: CoreListenOptions,
   ) {
-    let port: number;
-    if (typeof options.port === 'string') {
-      port = parseInt(options.port, 10);
-      if (isNaN(port)) {
+    if (options.port === undefined && options.pipePath === undefined) {
+      throw new Error('Either `port` or `pipePath` must be defined');
+    } else if (typeof options.port === 'string') {
+      options.port = parseInt(options.port, 10);
+      if (isNaN(options.port)) {
         throw new Error(`port must be an integer, not '${options.port}'`);
       }
-    } else {
-      port = options.port;
+    }
+    if (options.pipePath !== undefined && options.port !== undefined) {
+      throw new Error('Only one of `port `and `pipePath` may be set');
     }
     const defaults = {
       frontendHost: options.host,
-      frontendPort: +options.port,
+      frontendPort: options.port || undefined,
+      frontendPipePath: options.pipePath || undefined,
       graphqlPaths: options.graphqlPaths || ['/graphql'],
       originUrl: `http://${joinHostPort(
         innerAddress.address,

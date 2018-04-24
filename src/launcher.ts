@@ -1,7 +1,12 @@
 import { EventEmitter } from 'events';
 import { ChildProcess, spawn } from 'child_process';
 
-import { EngineConfig, LauncherOptions, ListeningAddress } from './types';
+import {
+  EngineConfig,
+  LauncherOptions,
+  ListeningAddress,
+  TcpListeningAddress,
+} from './types';
 
 // An arbitrary function; suitable as an EventEmitter event handler.
 type eventHandler = (...args: any[]) => any;
@@ -138,11 +143,14 @@ export class ApolloEngineLauncher extends EventEmitter {
           // wrong for your use case, explicitly specify a frontend host (in the
           // `frontends.host` field in your engine config, or in the `host`
           // option to ApolloEngine.listen).
-          let hostForUrl = la.ip;
-          if (la.ip === '' || la.ip === '::') {
-            hostForUrl = 'localhost';
+          if (ApolloEngineLauncher.isTcp(la)) {
+            // we are listening via TCP
+            let hostForUrl = la.ip;
+            if (la.ip === '' || la.ip === '::') {
+              hostForUrl = 'localhost';
+            }
+            la.url = `http://${joinHostPort(hostForUrl, la.port)}`;
           }
-          la.url = `http://${joinHostPort(hostForUrl, la.port)}`;
           this.emit('start', la);
         }
       });
@@ -239,6 +247,12 @@ export class ApolloEngineLauncher extends EventEmitter {
       });
       childRef.kill();
     });
+  }
+
+  private static isTcp(
+    listeningAddress: ListeningAddress,
+  ): listeningAddress is TcpListeningAddress {
+    return (<TcpListeningAddress>listeningAddress).port !== undefined;
   }
 
   private emitRestarting(error: string) {
