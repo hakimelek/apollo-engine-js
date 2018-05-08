@@ -238,7 +238,38 @@ describe('launch failure', () => {
       try {
         const p = new Promise(resolve => {
           httpServer = httpServer!;
-          engine!.listen({ pipePath: '\\\\.\\pipe\\foo', httpServer }, resolve);
+          engine!.listen(
+            { pipePath: String.raw`\\.\pipe\foo`, httpServer },
+            resolve,
+          );
+        });
+        await p;
+      } finally {
+        await engine.stop();
+        httpServer.close();
+      }
+    });
+
+    test('using pipe in port variable on Windows should actually work', async () => {
+      httpServer = http.createServer();
+      httpServer = httpServer!;
+      engine = new ApolloEngine({
+        apiKey: 'faked',
+        logging: {
+          level: 'DEBUG',
+          destination: 'STDERR',
+        },
+        reporting: {
+          disabled: true,
+        },
+      });
+      try {
+        const p = new Promise(resolve => {
+          httpServer = httpServer!;
+          engine!.listen(
+            { port: String.raw`\\.\pipe\foo`, httpServer },
+            resolve,
+          );
         });
         await p;
       } finally {

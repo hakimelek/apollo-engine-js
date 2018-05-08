@@ -224,9 +224,18 @@ export class ApolloEngine extends EventEmitter {
     if (options.port === undefined && options.pipePath === undefined) {
       throw new Error('Either `port` or `pipePath` must be defined');
     } else if (typeof options.port === 'string') {
-      options.port = parseInt(options.port, 10);
+      const stringPort = options.port;
+      options.port = parseInt(stringPort, 10);
       if (isNaN(options.port)) {
-        throw new Error(`port must be an integer, not '${options.port}'`);
+        // Engine only knows how to listen on Windows named pipes
+        const winPipePrefix = String.raw`\\.\pipe`;
+        if (stringPort.startsWith(winPipePrefix + '\\')) {
+          options.pipePath = stringPort;
+          options.port = undefined;
+        } else {
+          throw new Error(`port must be an integer or a Windows named pipe\
+          , not '${stringPort}'`);
+        }
       }
     }
     if (options.pipePath !== undefined && options.port !== undefined) {
