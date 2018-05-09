@@ -233,8 +233,10 @@ export class ApolloEngine extends EventEmitter {
           options.pipePath = stringPort;
           options.port = undefined;
         } else {
-          throw new Error(`port must be an integer or a Windows named pipe\
-          , not '${stringPort}'`);
+          throw new Error(
+            'port must be an integer or a Windows named pipe, ' +
+              `not '${stringPort}'`,
+          );
         }
       }
     }
