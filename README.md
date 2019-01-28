@@ -1,4 +1,6 @@
-# Apollo Engine
+# [DEPRECATED] Apollo Engine
+
+> **Please note:** The apollo-engine package is deprecated and is not being actively developed. We recommend that all users of Node GraphQL servers should use Apollo Server 2's built in Engine reporting support instead, please refer to the [Using Engine with v2.0](https://www.apollographql.com/docs/apollo-server/migration-engine.html).
 
 [![npm version](https://badge.fury.io/js/apollo-engine.svg)](https://badge.fury.io/js/apollo-engine)
 [![Build Status](https://circleci.com/gh/apollographql/apollo-engine-js.svg?style=svg)](https://circleci.com/gh/apollographql/apollo-engine-js)
