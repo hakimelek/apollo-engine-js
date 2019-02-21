@@ -1,6 +1,6 @@
 # [DEPRECATED] Apollo Engine
 
-> **Please note:** The apollo-engine package is deprecated and is not being actively developed. We recommend that all users of Node GraphQL servers should use Apollo Server 2's built in Engine reporting support instead, please refer to the [Using Engine with v2.0](https://www.apollographql.com/docs/apollo-server/migration-engine.html).
+> **Please note:** The `apollo-engine` package is deprecated and is not being actively developed. We only recommend its use for [a few use cases](https://www.apollographql.com/docs/references/engine-proxy.html). We recommend that all users of Node GraphQL servers should use the built-in Engine reporting support introduced in Apollo Server 2. Please refer to the [migration docs for details](https://www.apollographql.com/docs/apollo-server/migration-engine.html). The built-in Engine reporting agent is fully open source and is just an addition to your JS process rather than a separate closed-source binary proxy.
 
 [![npm version](https://badge.fury.io/js/apollo-engine.svg)](https://badge.fury.io/js/apollo-engine)
 [![Build Status](https://circleci.com/gh/apollographql/apollo-engine-js.svg?style=svg)](https://circleci.com/gh/apollographql/apollo-engine-js)
